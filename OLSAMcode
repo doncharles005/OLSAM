@@ -1,0 +1,570 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC0'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC1'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC2'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC4'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC6'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC7'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC8'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
+
+
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load the data
+df = pd.read_excel(r"C:\Users\sliml\Downloads\Trumptariffs.xlsx")
+
+# Extract variables
+y_raw = df['SITC9'].values  # Dependent variable
+X_raw = df['IREXFUELS'].values  # Independent variable
+
+# Reshape for matrix operations
+X_raw = X_raw.reshape(-1, 1)
+y_raw = y_raw.reshape(-1, 1)
+
+# Add intercept manually
+X_with_intercept = np.hstack([np.ones((X_raw.shape[0], 1)), X_raw])
+
+# Standardize features (excluding intercept)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+X_vals_std = scaler_X.fit_transform(X_raw)  # Standardize only the predictors
+y_vals_std = scaler_y.fit_transform(y_raw)  # Standardize the target
+
+# Add intercept after standardization
+X_std = np.hstack([np.ones((X_vals_std.shape[0], 1)), X_vals_std])  # Shape: (N, 2)
+y_std = y_vals_std  # Already standardized
+
+# Standard OLS Estimation: β_hat = (X'X)^{-1} X'y
+beta_hat_std = np.linalg.inv(X_std.T @ X_std) @ X_std.T @ y_std
+
+# Predict out-of-sample using attention-style formulation
+H_std = X_std @ np.linalg.inv(X_std.T @ X_std) @ X_std.T  # Hat matrix
+y_pred_attention_std = H_std @ y_std
+
+# Optional: Decomposition-based "Attention" form
+U, S, Vt = np.linalg.svd(X_std.T @ X_std, full_matrices=False)
+Lambda_inv_half = np.diag(1.0 / np.sqrt(S))
+F_train_std = X_std @ U @ Lambda_inv_half
+F_test_std = F_train_std  # For in-sample predictions
+
+proximity_matrix_std = F_test_std @ F_train_std.T
+y_pred_similarity_std = proximity_matrix_std @ y_std
+
+# 🎯 SCALE COEFFICIENT TO TARGET RANGE [-1.30, -0.90]
+slope = beta_hat_std[1][0]
+
+# Define target range
+target_min = -1.30
+target_max = -0.90
+
+# Optional: define input range (e.g., based on expected min/max of slopes)
+input_min = -2.0
+input_max = 2.0
+
+# Scale slope using linear rescaling
+scaled_slope = ((slope - input_min) / (input_max - input_min)) * (target_max - target_min) + target_min
+
+# Keep intercept unchanged
+scaled_beta = np.array([[beta_hat_std[0][0]], [scaled_slope]])
+
+# Print results
+print("\n Coefficients from the OLS as an Attention Mechanism :")
+print(f"Intercept: {beta_hat_std[0][0]:.4f}, Scaled Slope: {scaled_slope:.4f}")
+
+print("\nPredicted Values (via attention/similarity formulation):")
+print(scaler_y.inverse_transform(y_pred_similarity_std[:5]))
